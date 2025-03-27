@@ -38,6 +38,14 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
   final TextEditingController _controller = TextEditingController();
   String _searchQuery = '';
 
+  final List<String> expenseKeywords = [
+    "mua", "trả tiền", "đã mua", "chi", "tiêu", "thanh toán","đầu tư","trả nợ","đóng tiền","nạp tiền","thu tiền","vay"
+  ];
+
+  final List<String> incomeKeywords = [
+    "lương", "thu nhập", "tiền về", "nhận", "làm thêm", "thu","nhận","hoàn"
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -46,27 +54,34 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
 
   void _loadMessages() {
     setState(() {
-      messages.addAll(_messageBox.values.map((e) => Map<String, dynamic>.from(e)).toList());
+      messages.addAll(_messageBox.values.map((e) {
+        final message = Map<String, dynamic>.from(e);
+        if (message["date"] == null) {
+          message["date"] = DateTime.now();
+        }
+        return message;
+      }).toList());
     });
   }
 
-  // Function xử lý nhập liệu
   void _processMessage(String input) {
-    List<String> parts = input.split(RegExp(r"[,\s]+")); // Tách theo dấu phẩy hoặc khoảng trắng
+    List<String> parts = input.split(RegExp(r"[,\s]+"));
     if (parts.length < 2) return;
 
-    String action = parts[0].toLowerCase(); // Lấy hành động (mua, bán...)
-    String description = parts.sublist(1, parts.length - 1).join(" "); // Tên giao dịch
-    int? amount = _parseAmount(parts.last); // Tách số tiền
+    String description = parts.sublist(0, parts.length - 1).join(" ");
+    int? amount = _parseAmount(parts.last);
 
     if (amount != null) {
+      String category = _categorizeMessage(input);
+
       final message = {
         "text": input,
         "isMe": true,
-        "action": action,
+        "action": category,
         "description": description,
         "amount": amount,
-        "time": DateFormat('HH:mm').format(DateTime.now())
+        "time": DateFormat('HH:mm').format(DateTime.now()),
+        "date": DateTime.now(),
       };
       setState(() {
         messages.insert(0, message);
@@ -76,15 +91,27 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
     }
   }
 
-  // Chuyển đổi số tiền từ "10k" -> 10000
+  String _categorizeMessage(String input) {
+    input = input.toLowerCase();
+    for (var keyword in expenseKeywords) {
+      if (input.contains(keyword)) {
+        return "chi";
+      }
+    }
+    for (var keyword in incomeKeywords) {
+      if (input.contains(keyword)) {
+        return "thu";
+      }
+    }
+    return "unknown";
+  }
+
   int? _parseAmount(String amountText) {
     amountText = amountText.toLowerCase().replaceAll("k", "000").replaceAll("tr", "000000");
-    return int.tryParse(amountText);
+    return int.tryParse(amountText.replaceAll(RegExp(r'[^\d]'), ''));
   }
 
   void _editMessage(int index) {
-    // Logic to edit the message
-    // For example, you can pre-fill the input field with the message text
     _controller.text = messages[index]["text"];
     setState(() {
       messages.removeAt(index);
@@ -98,8 +125,34 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
     });
   }
 
+  Map<String, int> _calculateSummary() {
+    int totalIncome = 0;
+    int totalExpense = 0;
+
+    DateTime now = DateTime.now();
+    DateTime startOfDay = DateTime(now.year, now.month, now.day);
+
+    for (var message in messages) {
+      DateTime? messageDate = message["date"];
+      if (messageDate != null && messageDate.isAfter(startOfDay)) {
+        if (message["action"] == "thu") {
+          totalIncome += (message["amount"] as int);
+        } else if (message["action"] == "chi") {
+          totalExpense += (message["amount"] as int);
+        }
+      }
+    }
+
+    return {
+      "totalIncome": totalIncome,
+      "totalExpense": totalExpense,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    Map<String, int> summary = _calculateSummary();
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Chat Thu Chi"),
@@ -130,6 +183,15 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
               },
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Text("Tổng thu hôm nay: ${summary['totalIncome']} đ"),
+                Text("Tổng chi hôm nay: ${summary['totalExpense']} đ"),
+              ],
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               reverse: true,
@@ -139,7 +201,7 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
                 final message = messages[index];
                 if (_searchQuery.isNotEmpty &&
                     !message["text"].toLowerCase().contains(_searchQuery)) {
-                  return Container(); // Skip non-matching messages
+                  return Container();
                 }
                 return ChatBubble(
                   text: message["text"],
@@ -154,7 +216,6 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
               },
             ),
           ),
-          // Ô nhập tin nhắn
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -189,7 +250,6 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
   }
 }
 
-// Widget Bong bóng chat
 class ChatBubble extends StatelessWidget {
   final String text;
   final bool isMe;
