@@ -153,98 +153,135 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
   Widget build(BuildContext context) {
     Map<String, int> summary = _calculateSummary();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Chat Thu Chi"),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm...',
-                prefixIcon: Icon(Icons.search, color: Colors.blueAccent),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: EdgeInsets.symmetric(vertical: 15),
-                hintStyle: TextStyle(color: Colors.grey[400]),
-              ),
-              onChanged: (query) {
-                setState(() {
-                  _searchQuery = query.toLowerCase();
-                });
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Text("Tổng thu hôm nay: ${summary['totalIncome']} đ"),
-                Text("Tổng chi hôm nay: ${summary['totalExpense']} đ"),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              reverse: true,
-              padding: EdgeInsets.all(10),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final message = messages[index];
-                if (_searchQuery.isNotEmpty &&
-                    !message["text"].toLowerCase().contains(_searchQuery)) {
-                  return Container();
-                }
-                return ChatBubble(
-                  text: message["text"],
-                  isMe: message["isMe"],
-                  action: message["action"],
-                  description: message["description"],
-                  amount: message["amount"],
-                  time: message["time"],
-                  onEdit: () => _editMessage(index),
-                  onDelete: () => _deleteMessage(index),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Chat Thu Chi"),
+          backgroundColor: Colors.blueAccent,
+          foregroundColor: Colors.white,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.attach_money),
+              onPressed: () {
+                // Hiển thị tổng thu chi hôm nay
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text("Tổng thu chi hôm nay"),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text("Tổng thu: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(summary['totalIncome']).replaceAll('.', ',')}"),
+                          Text("Tổng chi: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(summary['totalExpense']).replaceAll('.', ',')}"),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text("Đóng"),
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
             ),
-          ),
-          SafeArea(
-            child: Padding(
+          ],
+        ),
+        body: Column(
+          children: [
+            Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      decoration: InputDecoration(
-                        hintText: "Nhập: mua gạo, 50k",
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                      ),
-                      onSubmitted: (value) {
-                        _processMessage(value);
-                      },
-                    ),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Tìm kiếm...',
+                  prefixIcon: Icon(Icons.search, color: Colors.blueAccent),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
                   ),
-                  SizedBox(width: 10),
-                  FloatingActionButton(
-                    onPressed: () => _processMessage(_controller.text),
-                    backgroundColor: Colors.blueAccent,
-                    child: Icon(Icons.send, color: Colors.white),
-                  ),
-                ],
+                  contentPadding: EdgeInsets.symmetric(vertical: 15),
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                ),
+                onChanged: (query) {
+                  setState(() {
+                    _searchQuery = query.toLowerCase();
+                  });
+                },
               ),
             ),
-          ),
-        ],
+            Expanded(
+              child: ListView.builder(
+                reverse: true,
+                padding: EdgeInsets.all(10),
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  final message = messages[index];
+                  if (_searchQuery.isNotEmpty &&
+                      !message["text"].toLowerCase().contains(_searchQuery)) {
+                    return Container();
+                  }
+                  return ChatBubble(
+                    text: message["text"],
+                    isMe: message["isMe"],
+                    action: message["action"],
+                    description: message["description"],
+                    amount: message["amount"],
+                    time: message["time"],
+                    onEdit: () => _editMessage(index),
+                    onDelete: () => _deleteMessage(index),
+                  );
+                },
+              ),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        decoration: InputDecoration(
+                          hintText: "Nhập: mua gạo, 50k",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide(color: Colors.blueAccent, width: 2),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintStyle: TextStyle(color: Colors.grey[400]),
+                        ),
+                        onSubmitted: (value) {
+                          _processMessage(value);
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    FloatingActionButton(
+                      onPressed: () => _processMessage(_controller.text),
+                      backgroundColor: Colors.blueAccent,
+                      child: Icon(Icons.send, color: Colors.white),
+                      elevation: 5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -320,7 +357,7 @@ class ChatBubble extends StatelessWidget {
                   style: TextStyle(color: isMe ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  "💰 ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(amount)}",
+                  "💰 ${NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(amount).replaceAll('.', ',')}",
                   style: TextStyle(color: isMe ? Colors.white70 : Colors.black87),
                 ),
               ],
