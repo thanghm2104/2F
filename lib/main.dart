@@ -37,14 +37,26 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
   final List<Map<String, dynamic>> messages = [];
   final TextEditingController _controller = TextEditingController();
   String _searchQuery = '';
-
   final List<String> expenseKeywords = [
-    "mua", "trả tiền", "đã mua", "chi", "tiêu", "thanh toán","đầu tư","trả nợ","đóng tiền","nạp tiền","thu tiền","vay"
+    "mua", "trả tiền", "đã mua", "chi", "tiêu", "thanh toán", "đầu tư", "trả nợ",
+    "đóng tiền", "nạp tiền", "thu tiền", "vay", "ăn uống", "mua đồ", "chợ",
+    "siêu thị", "điện", "nước", "gas", "wifi", "tiền nhà", "thuê nhà", "xăng xe",
+    "taxi", "grab", "sửa xe", "bảo dưỡng xe", "vé tàu", "vé xe", "xem phim",
+    "du lịch", "chơi game", "karaoke", "ăn hàng", "cafe", "học phí", "sách vở",
+    "khóa học", "tiền học", "học thêm", "bệnh viện", "thuốc", "khám bệnh",
+    "bảo hiểm", "viện phí", "trả góp", "trả lãi", "thanh toán thẻ", "đóng tiền vay",
+    "từ thiện", "quà tặng", "biếu tiền", "mất tiền", "phạt"
   ];
 
   final List<String> incomeKeywords = [
-    "lương", "thu nhập", "tiền về", "nhận", "làm thêm", "thu","nhận","hoàn"
+    "lương", "thu nhập", "tiền về", "nhận", "làm thêm", "thu", "hoàn", "bán hàng",
+    "doanh thu", "tiền hàng", "lợi nhuận", "tiền lời", "cổ tức", "lãi suất",
+    "tiền lãi", "lợi nhuận đầu tư", "chứng khoán", "trái phiếu", "thưởng",
+    "thưởng Tết", "trợ cấp", "phụ cấp", "hỗ trợ", "tiền thưởng", "biếu", "tặng",
+    "lì xì", "tiền mừng", "nhận quà", "hỗ trợ tài chính", "chuyển khoản vào",
+    "refund", "hoàn tiền"
   ];
+
 
   @override
   void initState() {
