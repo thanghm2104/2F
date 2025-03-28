@@ -37,6 +37,7 @@ class _ChatExpenseScreenState extends State<ChatExpenseScreen> {
   final List<Map<String, dynamic>> messages = [];
   final TextEditingController _controller = TextEditingController();
   String _searchQuery = '';
+  
   final List<String> expenseKeywords = [
     "mua", "trả tiền", "đã mua", "chi", "tiêu", "thanh toán", "đầu tư", "trả nợ",
     "đóng tiền", "nạp tiền", "thu tiền", "vay", "ăn uống", "mua đồ", "chợ",
